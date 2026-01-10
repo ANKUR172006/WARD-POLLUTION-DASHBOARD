@@ -22,7 +22,7 @@ export interface WardData {
     hours24: number;
     hours48: number;
   };
-  coordinates: { x: number; y: number; width: number; height: number };
+  coordinates: { x: number; y: number; width: number; height: number } | { path: string; centerX?: number; centerY?: number };
   alerts: string[];
   priority: number;
 }
@@ -48,5 +48,6 @@ export interface PolicyAction {
   priority: 'high' | 'medium' | 'low';
   estimatedImpact: string;
 }
+
 
 

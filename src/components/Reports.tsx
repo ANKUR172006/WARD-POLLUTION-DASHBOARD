@@ -39,8 +39,283 @@ export const Reports: React.FC = () => {
   const avgAQI = Math.round(mockWards.reduce((sum, ward) => sum + ward.aqi, 0) / mockWards.length);
   const worstWard = mockWards.reduce((worst, ward) => ward.aqi > worst.aqi ? ward : worst);
 
-  const handleExport = (format: 'pdf' | 'csv') => {
-    alert(`${format.toUpperCase()} export functionality will be implemented with backend integration`);
+  /**
+   * Export/Download Functionality
+   * 
+   * GOVERNANCE RELEVANCE:
+   * Report export enables data sharing with stakeholders, policy documentation,
+   * and evidence-based decision making. CSV format supports further analysis,
+   * while PDF format provides presentable reports for municipal meetings.
+   */
+  
+  // Helper function to escape CSV values
+  const escapeCSVValue = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    const stringValue = String(value);
+    // If value contains comma, quote, or newline, wrap in quotes and escape quotes
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    return stringValue;
+  };
+
+  const handleExportCSV = () => {
+    try {
+      // Filter wards based on selection
+      const wardsToExport = selectedWard === 'all' 
+        ? mockWards 
+        : mockWards.filter(w => w.id === selectedWard);
+
+      // Generate CSV content with proper escaping
+      const headers = ['Ward', 'AQI', 'Category', 'PM2.5 (μg/m³)', 'PM10 (μg/m³)', 'NO2 (μg/m³)', 'SO2 (μg/m³)', 'CO (mg/m³)', 'Alerts'];
+      const rows = wardsToExport.map(ward => [
+        escapeCSVValue(ward.name),
+        ward.aqi,
+        ward.category,
+        ward.pollutants.pm25,
+        ward.pollutants.pm10,
+        ward.pollutants.no2,
+        ward.pollutants.so2,
+        ward.pollutants.co,
+        ward.alerts.join('; ') || 'None'
+      ]);
+      
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+
+      // Add UTF-8 BOM for Excel compatibility
+      const BOM = '\uFEFF';
+      const csvWithBOM = BOM + csvContent;
+      
+      // Create and download CSV file
+      const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.href = url;
+      const timestamp = new Date().toISOString().split('T')[0];
+      link.download = `ward_pollution_report_${timestamp}.csv`;
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      // Show success message
+      console.log('CSV exported successfully');
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      alert('Error exporting CSV. Please try again.');
+    }
+  };
+
+  const handleExportPDF = () => {
+    try {
+      // Create a printable version of the report
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('Please allow pop-ups to generate PDF report.');
+        return;
+      }
+
+      const selectedWardName = selectedWard === 'all' 
+        ? 'All Wards' 
+        : mockWards.find(w => w.id === selectedWard)?.name || 'Selected Ward';
+
+      const wardsToExport = selectedWard === 'all' 
+        ? mockWards 
+        : mockWards.filter(w => w.id === selectedWard);
+
+      // Pre-compute colors for wards
+      const wardColors = wardsToExport.map(ward => getAQIColor(ward.category));
+
+      // Generate HTML content for PDF
+      const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ward Pollution Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      color: #1f2937;
+    }
+    .header {
+      border-bottom: 3px solid #3b82f6;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      color: #1e40af;
+      margin: 0;
+      font-size: 28px;
+    }
+    .header .meta {
+      color: #6b7280;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .summary-card {
+      background: #f3f4f6;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #3b82f6;
+    }
+    .summary-card h3 {
+      margin: 0 0 5px 0;
+      font-size: 12px;
+      color: #6b7280;
+      text-transform: uppercase;
+    }
+    .summary-card p {
+      margin: 0;
+      font-size: 24px;
+      font-weight: bold;
+      color: #1f2937;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      background: #f9fafb;
+      font-weight: bold;
+      color: #374151;
+    }
+    tr:hover {
+      background: #f9fafb;
+    }
+    .category-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+      text-align: center;
+      color: #6b7280;
+      font-size: 12px;
+    }
+    @media print {
+      body { margin: 0; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Ward-Wise Pollution Action Report</h1>
+    <div class="meta">
+      Generated: ${new Date().toLocaleString('en-IN')}<br>
+      Period: ${selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)}<br>
+      Wards: ${selectedWardName}
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="summary-card">
+      <h3>Average AQI</h3>
+      <p>${avgAQI}</p>
+    </div>
+    <div class="summary-card">
+      <h3>Total Alerts</h3>
+      <p>${totalAlerts}</p>
+    </div>
+    <div class="summary-card">
+      <h3>Worst Ward</h3>
+      <p style="font-size: 16px;">${worstWard.name.split(' - ')[0]}</p>
+      <p style="font-size: 14px; color: #ef4444;">AQI: ${worstWard.aqi}</p>
+    </div>
+    <div class="summary-card">
+      <h3>Total Wards</h3>
+      <p>${wardsToExport.length}</p>
+    </div>
+  </div>
+
+  <h2 style="margin-top: 30px;">Detailed Ward Data</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Ward</th>
+        <th>AQI</th>
+        <th>Category</th>
+        <th>PM2.5</th>
+        <th>PM10</th>
+        <th>NO₂</th>
+        <th>SO₂</th>
+        <th>CO</th>
+        <th>Alerts</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${wardsToExport.map((ward, index) => {
+        const color = wardColors[index];
+        return `
+        <tr>
+          <td>${ward.name}</td>
+          <td><strong>${ward.aqi}</strong></td>
+          <td><span class="category-badge" style="background: ${color}20; color: ${color};">${ward.category}</span></td>
+          <td>${ward.pollutants.pm25} μg/m³</td>
+          <td>${ward.pollutants.pm10} μg/m³</td>
+          <td>${ward.pollutants.no2} μg/m³</td>
+          <td>${ward.pollutants.so2} μg/m³</td>
+          <td>${ward.pollutants.co} mg/m³</td>
+          <td>${ward.alerts.length > 0 ? ward.alerts.join(', ') : 'None'}</td>
+        </tr>
+      `;
+      }).join('')}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <p>Ward-Wise Pollution Action Dashboard | Generated by Environmental Monitoring Authority</p>
+    <p>This report is for informational purposes only. For official use in policy decision-making.</p>
+  </div>
+
+  <script>
+    window.onload = function() {
+      window.print();
+    };
+  </script>
+</body>
+</html>`;
+
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      // Wait for content to load, then trigger print
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+        }, 250);
+      };
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Error generating PDF. Please try again or use browser print function.');
+    }
   };
 
   return (
@@ -57,14 +332,14 @@ export const Reports: React.FC = () => {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => handleExport('pdf')}
+              onClick={handleExportPDF}
               className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
             >
               <Download className="w-4 h-4" />
               Export PDF
             </button>
             <button
-              onClick={() => handleExport('csv')}
+              onClick={handleExportCSV}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
             >
               <Download className="w-4 h-4" />

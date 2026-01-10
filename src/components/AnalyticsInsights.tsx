@@ -9,6 +9,21 @@ interface AnalyticsInsightsProps {
   selectedWardName: string | null;
 }
 
+/**
+ * Analytics Insights Component
+ * 
+ * GOVERNANCE RELEVANCE:
+ * Time-series analysis and weather correlation enable evidence-based policy evaluation.
+ * This component supports:
+ * - Trend identification to assess intervention effectiveness over time
+ * - Weather impact correlation for understanding external factors
+ * - Pattern recognition for seasonal pollution management
+ * - Data-driven evaluation of policy interventions
+ * 
+ * By tracking pollution trends and correlating with weather patterns, officers can
+ * evaluate whether policy interventions are effective, adjust strategies based on
+ * weather forecasts, and demonstrate accountability through measurable outcomes.
+ */
 export const AnalyticsInsights: React.FC<AnalyticsInsightsProps> = ({
   timeSeriesData,
   weatherData,
@@ -113,5 +128,10 @@ export const AnalyticsInsights: React.FC<AnalyticsInsightsProps> = ({
     </div>
   );
 };
+
+
+
+
+
 
 

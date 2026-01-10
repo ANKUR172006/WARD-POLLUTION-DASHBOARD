@@ -8,6 +8,20 @@ interface WardIntelligencePanelProps {
   ward: WardData | null;
 }
 
+/**
+ * Ward Intelligence Panel Component
+ * 
+ * GOVERNANCE RELEVANCE:
+ * Detailed ward-level intelligence enables targeted policy interventions. This panel provides:
+ * - Comprehensive pollution source attribution for evidence-based interventions
+ * - Pollutant breakdown enabling compliance monitoring against standards
+ * - Forecast data supporting proactive policy measures
+ * - Detailed metrics supporting resource allocation decisions
+ * 
+ * By presenting detailed technical data alongside actionable insights, officers can
+ * make informed decisions on specific pollution sources to target (vehicular, construction,
+ * industrial) and track intervention effectiveness through trend monitoring.
+ */
 export const WardIntelligencePanel: React.FC<WardIntelligencePanelProps> = ({ ward }) => {
   if (!ward) {
     return (
@@ -158,5 +172,10 @@ export const WardIntelligencePanel: React.FC<WardIntelligencePanelProps> = ({ wa
     </div>
   );
 };
+
+
+
+
+
 
 

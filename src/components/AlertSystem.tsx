@@ -8,14 +8,39 @@ interface AlertSystemProps {
   onWardClick?: (wardId: string) => void;
 }
 
+/**
+ * Alert & Early-Warning System Component
+ * 
+ * GOVERNANCE RELEVANCE:
+ * Early warning systems are critical for proactive governance and public safety.
+ * This component enables:
+ * - Rapid identification of high-risk areas requiring emergency response
+ * - Predictive alerts allowing preemptive policy interventions
+ * - Priority-based resource allocation during pollution emergencies
+ * - Transparent communication of environmental risks to citizens and officials
+ * 
+ * By ranking wards by priority and severity, government officials can make informed
+ * decisions on emergency response deployment, public health advisories, and resource
+ * allocation, ensuring effective crisis management and public protection.
+ */
 export const AlertSystem: React.FC<AlertSystemProps> = ({ wards, onWardClick }) => {
+  // Safety checks to prevent crashes
+  if (!wards || !Array.isArray(wards) || wards.length === 0) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <p className="text-gray-500 text-sm">No ward data available</p>
+      </div>
+    );
+  }
+
   const highRiskWards = wards
-    .filter(w => w.aqi >= 300 || w.alerts.length > 0)
-    .sort((a, b) => b.priority - a.priority)
+    .filter(w => w && (w.aqi >= 300 || (Array.isArray(w.alerts) && w.alerts.length > 0)))
+    .sort((a, b) => (b?.priority || 0) - (a?.priority || 0))
     .slice(0, 5);
 
   const topPolluted = [...wards]
-    .sort((a, b) => b.aqi - a.aqi)
+    .filter(w => w && typeof w.aqi === 'number')
+    .sort((a, b) => (b?.aqi || 0) - (a?.aqi || 0))
     .slice(0, 5);
 
   return (

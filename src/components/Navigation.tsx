@@ -1,5 +1,6 @@
 import React from 'react';
-import { LayoutDashboard, FileText, Bell, BarChart3, Home } from 'lucide-react';
+import { LayoutDashboard, FileText, Bell, BarChart3, Home, Info } from 'lucide-react';
+import { useRole } from '../contexts/RoleContext';
 
 export type ViewType = 'dashboard' | 'reports' | 'alerts' | 'analytics';
 
@@ -9,13 +10,28 @@ interface NavigationProps {
   alertCount: number;
 }
 
+/**
+ * Navigation Component - Shows different menu items based on user role
+ * Citizen: Simplified menu (Dashboard, Alerts, Info)
+ * Officer: Full menu (Dashboard, Alerts, Analytics, Reports)
+ */
 export const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange, alertCount }) => {
-  const navItems = [
+  const { role } = useRole();
+
+  // Different navigation items for different roles
+  const citizenNavItems = [
+    { id: 'dashboard' as ViewType, label: 'Dashboard', icon: Home },
+    { id: 'alerts' as ViewType, label: 'Alerts', icon: Bell, badge: alertCount },
+  ];
+
+  const officerNavItems = [
     { id: 'dashboard' as ViewType, label: 'Dashboard', icon: Home },
     { id: 'alerts' as ViewType, label: 'Alerts', icon: Bell, badge: alertCount },
     { id: 'analytics' as ViewType, label: 'Analytics', icon: BarChart3 },
     { id: 'reports' as ViewType, label: 'Reports', icon: FileText },
   ];
+
+  const navItems = role === 'citizen' ? citizenNavItems : officerNavItems;
 
   return (
     <nav className="bg-white border-b border-gray-200">

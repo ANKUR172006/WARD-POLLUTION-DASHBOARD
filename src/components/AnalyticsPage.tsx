@@ -7,10 +7,48 @@ import {
   PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
 
+/**
+ * Analytics Page - Advanced Analytics for Officers
+ * 
+ * GOVERNANCE RELEVANCE:
+ * Provides data-driven insights for evidence-based policy making. Time-series analysis
+ * helps identify pollution trends, seasonal patterns, and intervention effectiveness.
+ * Source attribution enables targeted policy interventions (traffic, construction, etc.)
+ */
 export const AnalyticsPage: React.FC = () => {
   const [selectedWard, setSelectedWard] = useState<string>('all');
+  const [timeFilter, setTimeFilter] = useState<'day' | 'week' | 'month'>('week');
 
   const wardOptions = [{ id: 'all', name: 'All Wards' }, ...mockWards];
+
+  // Filter time series data based on selected time filter
+  const getFilteredTimeSeriesData = () => {
+    const allData = mockTimeSeriesData;
+    switch (timeFilter) {
+      case 'day':
+        // Last 24 hours (assuming hourly data, for demo use last 7 data points)
+        return allData.slice(-7);
+      case 'week':
+        // Last 7 days
+        return allData;
+      case 'month':
+        // Generate monthly data (for prototype, show 30 days)
+        return Array.from({ length: 30 }, (_, i) => {
+          const date = new Date();
+          date.setDate(date.getDate() - (29 - i));
+          return {
+            date: date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+            aqi: 150 + Math.random() * 100,
+            pm25: 100 + Math.random() * 80,
+            pm10: 150 + Math.random() * 100,
+          };
+        });
+      default:
+        return allData;
+    }
+  };
+
+  const filteredTimeSeriesData = getFilteredTimeSeriesData();
 
   const selectedWardData = selectedWard === 'all' 
     ? mockWards 
@@ -82,15 +120,29 @@ export const AnalyticsPage: React.FC = () => {
             </h2>
             <p className="text-sm text-gray-600 mt-1">Deep dive into pollution patterns and trends</p>
           </div>
-          <select
-            value={selectedWard}
-            onChange={(e) => setSelectedWard(e.target.value)}
-            className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {wardOptions.map(ward => (
-              <option key={ward.id} value={ward.id}>{ward.name}</option>
-            ))}
-          </select>
+          <div className="flex gap-2">
+            {/* Time Filter */}
+            <select
+              value={timeFilter}
+              onChange={(e) => setTimeFilter(e.target.value as 'day' | 'week' | 'month')}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              title="Select time period for analysis"
+            >
+              <option value="day">Last 24 Hours</option>
+              <option value="week">Last 7 Days</option>
+              <option value="month">Last 30 Days</option>
+            </select>
+            {/* Ward Filter */}
+            <select
+              value={selectedWard}
+              onChange={(e) => setSelectedWard(e.target.value)}
+              className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {wardOptions.map(ward => (
+                <option key={ward.id} value={ward.id}>{ward.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Key Metrics */}
@@ -116,9 +168,11 @@ export const AnalyticsPage: React.FC = () => {
 
       {/* Time Series Analysis */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">7-Day Trend Analysis</h3>
+        <h3 className="text-lg font-bold text-gray-900 mb-4">
+          {timeFilter === 'day' ? '24-Hour' : timeFilter === 'week' ? '7-Day' : '30-Day'} Trend Analysis
+        </h3>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={mockTimeSeriesData}>
+          <LineChart data={filteredTimeSeriesData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} />
@@ -233,4 +287,9 @@ export const AnalyticsPage: React.FC = () => {
     </div>
   );
 };
+
+
+
+
+
 

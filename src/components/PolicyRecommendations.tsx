@@ -6,6 +6,22 @@ interface PolicyRecommendationsProps {
   actions: PolicyAction[];
 }
 
+/**
+ * Policy Recommendations Component
+ * 
+ * GOVERNANCE RELEVANCE:
+ * Data-driven policy recommendations transform raw monitoring data into actionable
+ * governance interventions. This component enables:
+ * - Evidence-based decision making with specific, measurable actions
+ * - Prioritized interventions based on pollution severity and source attribution
+ * - Targeted policy measures (traffic control, construction limits, enforcement)
+ * - Accountability through clear action items and estimated impact metrics
+ * 
+ * By automatically generating ward-specific recommendations based on AQI thresholds
+ * and pollution sources, officers can quickly implement appropriate interventions
+ * without requiring extensive policy analysis, supporting rapid response governance.
+ */
+
 const iconMap = {
   traffic: Car,
   construction: Building2,
@@ -88,4 +104,9 @@ export const PolicyRecommendations: React.FC<PolicyRecommendationsProps> = ({ ac
     </div>
   );
 };
+
+
+
+
+
 
