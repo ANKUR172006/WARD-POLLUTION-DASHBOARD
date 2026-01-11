@@ -206,8 +206,9 @@ export function getPolicyActions(ward: WardData): PolicyAction[] {
   return actions;
 }
 
-export function getAQIColor(category: AQICategory): string {
-  const colors: Record<AQICategory, string> = {
+// Deployment-safe: Changed to string type to avoid AQICategory import issues
+export function getAQIColor(category: string): string {
+  const colors: Record<string, string> = {
     'Good': '#10b981',
     'Satisfactory': '#84cc16',
     'Moderate': '#fbbf24',
@@ -215,11 +216,12 @@ export function getAQIColor(category: AQICategory): string {
     'Very Poor': '#ef4444',
     'Severe': '#991b1b',
   };
-  return colors[category];
+  return colors[category] || '#6b7280'; // Default gray if category not found
 }
 
-export function getAQIBgColor(category: AQICategory): string {
-  const colors: Record<AQICategory, string> = {
+// Deployment-safe: Changed to string type to avoid AQICategory import issues
+export function getAQIBgColor(category: string): string {
+  const colors: Record<string, string> = {
     'Good': '#d1fae5',
     'Satisfactory': '#fef3c7',
     'Moderate': '#fde68a',
@@ -227,5 +229,5 @@ export function getAQIBgColor(category: AQICategory): string {
     'Very Poor': '#fee2e2',
     'Severe': '#fecaca',
   };
-  return colors[category];
+  return colors[category] || '#f3f4f6'; // Default gray if category not found
 }

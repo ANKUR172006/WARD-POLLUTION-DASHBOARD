@@ -1,48 +1,13 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Deployment-safe: Make API URL optional - app works with or without backend
+// Vercel build: Will use default if VITE_API_URL is not set
+const API_BASE_URL = (import.meta.env?.VITE_API_URL as string | undefined) || 'http://localhost:3001/api';
 
-export interface WardData {
-  id: string;
-  name: string;
-  aqi: number;
-  category: string;
-  pollutants: {
-    pm25: number;
-    pm10: number;
-    no2: number;
-    so2: number;
-    co: number;
-  };
-  sources: {
-    vehicular: number;
-    construction: number;
-    industrial: number;
-    wasteBurning: number;
-  };
-  forecast: {
-    hours24: number;
-    hours48: number;
-  };
-  coordinates: {
-    path: string;
-    centerX: number;
-    centerY: number;
-  };
-  alerts: string[];
-  priority: number;
-}
+// Deployment-safe: Import types from types.ts to ensure single source of truth
+// Removed duplicate WardData definition to prevent type conflicts
+import type { WardData, TimeSeriesData, WeatherData } from '../types';
 
-export interface TimeSeriesData {
-  date: string;
-  aqi: number;
-  pm25: number;
-  pm10: number;
-}
-
-export interface WeatherData {
-  windSpeed: number;
-  temperature: number;
-  humidity: number;
-}
+// Re-export types for convenience (allows existing imports to work)
+export type { WardData, TimeSeriesData, WeatherData };
 
 // Fetch with timeout and better error handling
 async function fetchAPI<T>(endpoint: string, timeout: number = 8000): Promise<T> {
